@@ -1,1192 +1,1565 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Matrice d'Eisenhower</title>
-  <style>
-    /* ============================================================
-       RESET & BASE
-    ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      min-height: 100vh;
-      color: #e0e0e0;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrice d'Eisenhower</title>
+<style>
+  /* ============================================================
+     RESET & BASE
+  ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    color: #e0e0e0;
+    padding: 20px;
+  }
 
-    /* ============================================================
-       GITHUB BAR
-    ============================================================ */
-    #github-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 20px;
-      background: #24292e;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    #github-bar span.label {
-      color: white;
-      font-weight: bold;
-      font-size: 15px;
-    }
-    #github-bar button {
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: opacity 0.2s;
-    }
-    #github-bar button:hover { opacity: 0.85; }
-    #btn-load  { background: #238636; color: white; }
-    #btn-save  { background: #1f6feb; color: white; }
-    #gist-status {
-      font-size: 13px;
-      font-style: italic;
-      margin-left: auto;
-    }
+  /* ============================================================
+     GITHUB SYNC PANEL
+  ============================================================ */
+  #github-panel {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  #github-panel h3 {
+    font-size: 0.95rem;
+    color: #a0c4ff;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  #github-panel input {
+    flex: 1;
+    min-width: 180px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    color: #e0e0e0;
+    font-size: 0.85rem;
+  }
+  #github-panel input::placeholder { color: #888; }
+  #github-panel button {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #0f3460;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+  #github-panel button:hover { background: #1a5276; }
+  #sync-status {
+    font-size: 0.82rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.3);
+    white-space: nowrap;
+  }
+  #sync-status.ok    { color: #2ecc71; }
+  #sync-status.error { color: #e74c3c; }
+  #sync-status.busy  { color: #f39c12; }
+  #gist-link {
+    font-size: 0.78rem;
+    color: #a0c4ff;
+    text-decoration: none;
+    display: none;
+  }
+  #gist-link:hover { text-decoration: underline; }
 
-    /* ============================================================
-       HEADER
-    ============================================================ */
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .header h1 {
-      font-size: 2.2rem;
-      background: linear-gradient(90deg, #f093fb, #f5576c, #4facfe);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
-    }
-    .header p { color: #aaa; font-size: 1rem; }
+  /* ============================================================
+     HEADER
+  ============================================================ */
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header p { color: #a0a0b0; font-size: 1rem; }
 
-    /* ============================================================
-       OBJECTIFS STRATÉGIQUES
-    ============================================================ */
-    .objectives-panel {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-    .objectives-panel h2 {
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-      color: #f093fb;
-    }
-    .objectives-list { list-style: none; margin-bottom: 12px; }
-    .objectives-list li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      font-size: 0.95rem;
-    }
-    .objectives-list li:last-child { border-bottom: none; }
-    .objectives-list li .del-obj {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: #f5576c;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .add-objective {
-      display: flex;
-      gap: 8px;
-    }
-    .add-objective input {
-      flex: 1;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      font-size: 0.9rem;
-    }
-    .add-objective button {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      background: linear-gradient(135deg, #f093fb, #f5576c);
-      color: white;
-      cursor: pointer;
-      font-weight: 600;
-    }
+  /* ============================================================
+     OBJECTIVES
+  ============================================================ */
+  .objectives-section {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .objectives-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .objectives-header h2 { font-size: 1.1rem; color: #a0c4ff; }
+  .vision-badge {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .objectives-list { display: flex; flex-direction: column; gap: 10px; }
+  .objective-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.2s;
+  }
+  .objective-item:hover { background: rgba(255,255,255,0.09); }
+  .objective-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; }
+  .objective-text {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .objective-text::placeholder { color: #666; }
+  .objective-text.completed { text-decoration: line-through; color: #666; }
+  .delete-obj-btn {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 2px 6px;
+  }
+  .delete-obj-btn:hover { opacity: 1; }
 
-    /* ============================================================
-       TOOLBAR
-    ============================================================ */
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 20px;
-      background: rgba(255,255,255,0.05);
-      padding: 14px 18px;
-      border-radius: 12px;
-    }
-    .toolbar button {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    #btn-export  { background: #4facfe; color: #000; }
-    #btn-import  { background: #43e97b; color: #000; }
-    #btn-reset   { background: #f5576c; color: #fff; }
-    .toolbar button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  /* ============================================================
+     CONTROLS
+  ============================================================ */
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary   { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+  .btn-secondary { background: rgba(255,255,255,0.1); color:#e0e0e0; border:1px solid rgba(255,255,255,0.2); }
+  .btn-danger    { background: linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 
-    /* Tags */
-    .tags-section { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
-    .tag-badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-    }
-    .tag-badge.active { border-color: #fff; transform: scale(1.05); }
-    .tag-badge.all { background: rgba(255,255,255,0.15); color: #fff; }
+  /* ============================================================
+     TAGS
+  ============================================================ */
+  .tags-section {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .tags-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tags-header span { color: #a0c4ff; font-size: 0.9rem; font-weight: 600; }
+  .tag-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tag-input-row input {
+    flex: 1;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    color: #e0e0e0;
+    font-size: 0.85rem;
+  }
+  .tag-input-row input::placeholder { color: #666; }
+  .tag-color-input { width: 36px; height: 32px; border: none; border-radius: 50%; cursor: pointer; padding: 2px; background: none; }
+  .tags-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .tag-badge:hover { transform: scale(1.05); }
+  .tag-badge.selected { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+  .tag-delete { background: none; border: none; color: inherit; cursor: pointer; font-size: 0.75rem; opacity: 0.7; }
+  .tag-delete:hover { opacity: 1; }
 
-    /* Filtres */
-    .filter-section { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 20px; }
-    .filter-btn {
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 2px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.05);
-      color: #ccc;
-      cursor: pointer;
-      font-size: 0.82rem;
-      transition: all 0.2s;
-    }
-    .filter-btn.active { background: rgba(255,255,255,0.2); color: #fff; border-color: #fff; }
+  /* ============================================================
+     FILTER BAR
+  ============================================================ */
+  .filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-bar span { color: #a0a0b0; font-size: 0.85rem; }
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #e0e0e0;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(102,126,234,0.3);
+    border-color: #667eea;
+    color: #fff;
+  }
+  .urgency-filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .urgency-filter-btn.not-urgent { border-color: #2ecc71; color: #2ecc71; }
+  .urgency-filter-btn.urgent     { border-color: #e74c3c; color: #e74c3c; }
+  .urgency-filter-btn.important     { border-color: #f39c12; color: #f39c12; }
+  .urgency-filter-btn.not-important { border-color: #95a5a6; color: #95a5a6; }
+  .urgency-filter-btn.active { color: #fff; }
+  .urgency-filter-btn.not-urgent.active     { background: #2ecc71; }
+  .urgency-filter-btn.urgent.active         { background: #e74c3c; }
+  .urgency-filter-btn.important.active      { background: #f39c12; }
+  .urgency-filter-btn.not-important.active  { background: #95a5a6; }
 
-    /* ============================================================
-       MATRICE GRID
-    ============================================================ */
-    .matrix-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 768px) { .matrix-grid { grid-template-columns: 1fr; } }
+  /* ============================================================
+     MATRIX GRID
+  ============================================================ */
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) { .matrix-grid { grid-template-columns: 1fr; } }
 
-    /* ============================================================
-       QUADRANT
-    ============================================================ */
-    .quadrant {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 18px;
-      min-height: 220px;
-      display: flex;
-      flex-direction: column;
-      transition: border-color 0.2s;
-    }
-    .quadrant.drag-over { border-color: #4facfe; background: rgba(79,172,254,0.08); }
+  .quadrant {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    min-height: 200px;
+    transition: all 0.3s;
+  }
+  .quadrant.drag-over { background: rgba(102,126,234,0.15); border-color: #667eea; transform: scale(1.01); }
 
-    .quadrant-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .quadrant-title { font-size: 1rem; font-weight: 700; }
-    .quadrant-subtitle { font-size: 0.75rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+  .quadrant-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-wrap: wrap;
+  }
+  .quadrant-icon { font-size: 1.5rem; }
+  .quadrant-title { flex: 1; }
+  .quadrant-title h3 { font-size: 1rem; font-weight: 700; }
+  .quadrant-title p  { font-size: 0.75rem; color: #a0a0b0; letter-spacing: 1px; }
 
-    /* Couleurs quadrants */
-    .q-planifier { border-top: 3px solid #4facfe; }
-    .q-planifier .quadrant-title { color: #4facfe; }
-    .q-faire     { border-top: 3px solid #f5576c; }
-    .q-faire     .quadrant-title { color: #f5576c; }
-    .q-eliminer  { border-top: 3px solid #aaa; }
-    .q-eliminer  .quadrant-title { color: #aaa; }
-    .q-deleguer  { border-top: 3px solid #f093fb; }
-    .q-deleguer  .quadrant-title { color: #f093fb; }
+  .score-badge {
+    background: linear-gradient(135deg,#f39c12,#e67e22);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .score-badge:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(243,156,18,0.4); }
 
-    /* Score collecte */
-    .score-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .score-bar .score-label { font-size: 0.82rem; color: #ffd700; font-weight: 600; }
-    .score-btn {
-      padding: 3px 10px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.78rem;
-      font-weight: 700;
-      background: rgba(255,215,0,0.15);
-      color: #ffd700;
-      border: 1px solid rgba(255,215,0,0.3);
-      transition: all 0.2s;
-    }
-    .score-btn:hover { background: rgba(255,215,0,0.3); }
+  /* Quadrant color accents */
+  .quadrant-plan   { border-left: 4px solid #3498db; }
+  .quadrant-do     { border-left: 4px solid #e74c3c; }
+  .quadrant-elim   { border-left: 4px solid #95a5a6; }
+  .quadrant-deleg  { border-left: 4px solid #f39c12; }
+  .quadrant-plan   .quadrant-title h3 { color: #3498db; }
+  .quadrant-do     .quadrant-title h3 { color: #e74c3c; }
+  .quadrant-elim   .quadrant-title h3 { color: #95a5a6; }
+  .quadrant-deleg  .quadrant-title h3 { color: #f39c12; }
 
-    /* Formulaire ajout tâche */
-    .add-task-form {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .add-task-form input[type="text"] {
-      flex: 1;
-      min-width: 120px;
-      padding: 7px 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      font-size: 0.85rem;
-    }
-    .add-task-form select {
-      padding: 7px 8px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(30,30,60,0.9);
-      color: #fff;
-      font-size: 0.82rem;
-    }
-    .add-task-form button {
-      padding: 7px 14px;
-      border-radius: 8px;
-      border: none;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
-      color: #000;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
+  /* Point buttons */
+  .point-buttons { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .point-btn {
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #e0e0e0;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+  .point-btn:hover { background: rgba(102,126,234,0.3); border-color: #667eea; }
+  .point-btn.selected { background: rgba(102,126,234,0.5); border-color: #667eea; color: #fff; font-weight: bold; }
 
-    /* Liste tâches */
-    .task-list { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-    .task-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-      cursor: grab;
-      transition: all 0.2s;
-      font-size: 0.88rem;
-    }
-    .task-item:hover { background: rgba(255,255,255,0.1); transform: translateX(2px); }
-    .task-item.dragging { opacity: 0.4; }
-    .task-item.done { opacity: 0.5; text-decoration: line-through; }
-    .task-item input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; }
-    .task-text { flex: 1; }
-    .task-tag {
-      font-size: 0.72rem;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    .task-pts { font-size: 0.75rem; color: #ffd700; font-weight: 700; }
-    .task-actions { display: flex; gap: 4px; }
-    .task-actions button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 0.9rem;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-    .task-actions button:hover { background: rgba(255,255,255,0.15); }
+  /* ============================================================
+     TASK ITEMS
+  ============================================================ */
+  .tasks-list { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
 
-    /* ============================================================
-       BACKLOG
-    ============================================================ */
-    .backlog-panel {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 24px;
-    }
-    .backlog-panel h2 { font-size: 1rem; margin-bottom: 12px; color: #f093fb; }
+  .task-item {
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: grab;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+  }
+  .task-item:hover { background: rgba(255,255,255,0.12); transform: translateX(2px); }
+  .task-item.dragging { opacity: 0.4; transform: rotate(2deg); }
+  .task-item.completed-task { opacity: 0.5; }
+  .task-item.completed-task .task-text { text-decoration: line-through; color: #888; }
 
-    /* ============================================================
-       SCORE TOTAL
-    ============================================================ */
-    .score-panel {
-      background: rgba(255,215,0,0.08);
-      border: 1px solid rgba(255,215,0,0.2);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-    .score-panel h2 { font-size: 1.4rem; color: #ffd700; margin-bottom: 8px; }
-    .score-panel .total { font-size: 2.5rem; font-weight: 900; color: #ffd700; }
-    .score-panel button {
-      margin-top: 12px;
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: none;
-      background: #f5576c;
-      color: white;
-      cursor: pointer;
-      font-weight: 600;
-    }
+  .task-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #667eea; flex-shrink: 0; margin-top: 2px; }
 
-    /* Tâches complétées */
-    .completed-panel {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 18px;
-    }
-    .completed-panel h2 { font-size: 1rem; margin-bottom: 12px; color: #43e97b; }
-    .completed-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-size: 0.88rem;
-      color: #aaa;
-    }
-    .completed-item:last-child { border-bottom: none; }
-    .completed-pts { color: #ffd700; font-weight: 700; margin-left: auto; }
+  .task-content { flex: 1; min-width: 0; }
+  .task-text {
+    font-size: 0.88rem;
+    line-height: 1.4;
+    word-break: break-word;
+    background: transparent;
+    border: none;
+    color: #e0e0e0;
+    width: 100%;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .task-text:focus { cursor: text; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 2px 4px; }
 
-    /* ============================================================
-       MODAL IMPORT
-    ============================================================ */
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: #1a1a2e;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 16px;
-      padding: 28px;
-      width: 90%;
-      max-width: 520px;
-    }
-    .modal h3 { margin-bottom: 12px; color: #4facfe; }
-    .modal textarea {
-      width: 100%;
-      height: 180px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 8px;
-      color: #fff;
-      padding: 10px;
-      font-size: 0.85rem;
-      resize: vertical;
-      margin-bottom: 10px;
-    }
-    .modal .error { color: #f5576c; font-size: 0.85rem; margin-bottom: 8px; }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .modal-actions button {
-      padding: 8px 18px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
-    .btn-confirm { background: #43e97b; color: #000; }
-  </style>
+  .task-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; align-items: center; }
+  .task-tag {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .task-points {
+    font-size: 0.7rem;
+    color: #f39c12;
+    font-weight: bold;
+    background: rgba(243,156,18,0.15);
+    padding: 2px 6px;
+    border-radius: 8px;
+  }
+  .task-date { font-size: 0.68rem; color: #888; }
+
+  .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .task-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .task-action-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+
+  /* Tag selector on task */
+  .task-tag-selector {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 8px;
+    z-index: 100;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 160px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  /* Add task input */
+  .add-task-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .add-task-input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.3);
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-task-input:focus { border-color: #667eea; }
+  .add-task-input::placeholder { color: #555; }
+  .add-task-btn {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .add-task-btn:hover { transform: scale(1.05); }
+
+  /* ============================================================
+     BACKLOG
+  ============================================================ */
+  .backlog-section {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 4px solid #9b59b6;
+  }
+  .backlog-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-wrap: wrap;
+  }
+  .backlog-header h3 { color: #9b59b6; font-size: 1rem; }
+  .backlog-count {
+    background: rgba(155,89,182,0.3);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    color: #9b59b6;
+  }
+
+  /* ============================================================
+     COMPLETED
+  ============================================================ */
+  .completed-section {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 4px solid #2ecc71;
+  }
+  .completed-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-wrap: wrap;
+  }
+  .completed-header h3 { color: #2ecc71; font-size: 1rem; }
+  .total-score {
+    background: linear-gradient(135deg,#2ecc71,#27ae60);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-left: auto;
+  }
+  .reset-score-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(231,76,60,0.4);
+    background: rgba(231,76,60,0.1);
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .reset-score-btn:hover { background: rgba(231,76,60,0.3); }
+
+  .completed-task-item {
+    background: rgba(46,204,113,0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(46,204,113,0.15);
+  }
+  .completed-task-item .task-text-done { flex: 1; font-size: 0.88rem; color: #a0a0b0; text-decoration: line-through; }
+  .completed-task-item .task-score-done { color: #2ecc71; font-weight: bold; font-size: 0.85rem; }
+  .completed-task-item .task-origin { font-size: 0.72rem; color: #666; }
+  .restore-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .restore-btn:hover { opacity: 1; }
+
+  .empty-state { text-align: center; color: #555; font-size: 0.85rem; padding: 20px; }
+
+  /* ============================================================
+     MODAL (import)
+  ============================================================ */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #1a1a2e;
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 520px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .modal h3 { margin-bottom: 12px; color: #a0c4ff; }
+  .modal p  { font-size: 0.85rem; color: #a0a0b0; margin-bottom: 12px; }
+  .modal textarea {
+    width: 100%;
+    height: 160px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    color: #e0e0e0;
+    padding: 10px;
+    font-size: 0.82rem;
+    resize: vertical;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .modal-error { color: #e74c3c; font-size: 0.82rem; margin-bottom: 10px; display: none; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ============================================================
+     TOAST
+  ============================================================ */
+  #toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(30,30,50,0.95);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 0.88rem;
+    color: #e0e0e0;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    pointer-events: none;
+    max-width: 320px;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
 </head>
 <body>
 
 <!-- ============================================================
-     GITHUB BAR
+     GITHUB GIST SYNC PANEL
 ============================================================ -->
-<div id="github-bar">
-  <span class="label">🐙 GitHub Gist</span>
-  <button id="btn-load">⬇️ Charger depuis GitHub</button>
-  <button id="btn-save">☁️ Sauvegarder sur GitHub</button>
-  <span id="gist-status"></span>
+<div id="github-panel">
+  <h3>🐙 Synchronisation GitHub Gist</h3>
+  <input type="password" id="gh-token" placeholder="🔑 GitHub Personal Access Token (gist scope)" />
+  <input type="text"     id="gh-gist-id" placeholder="📄 Gist ID (laisser vide pour créer automatiquement)" />
+  <button onclick="saveGithubConfig()">💾 Enregistrer config</button>
+  <span id="sync-status" class="busy">⚙️ Non configuré</span>
+  <a id="gist-link" href="#" target="_blank">🔗 Voir le Gist</a>
 </div>
 
 <!-- ============================================================
      HEADER
 ============================================================ -->
 <div class="header">
-  <h1>🧭 Matrice d'Eisenhower</h1>
+  <h1>🎯 Matrice d'Eisenhower</h1>
   <p>Priorisez vos tâches selon leur urgence et leur importance</p>
 </div>
 
 <!-- ============================================================
-     OBJECTIFS STRATÉGIQUES
+     OBJECTIVES
 ============================================================ -->
-<div class="objectives-panel">
-  <h2>🎯 Objectifs Stratégiques — <span id="obj-count">0</span> objectif(s)</h2>
-  <ul class="objectives-list" id="objectives-list"></ul>
-  <div class="add-objective">
-    <input type="text" id="obj-input" placeholder="Ajouter un objectif stratégique…" />
-    <button id="btn-add-obj">＋</button>
+<div class="objectives-section">
+  <div class="objectives-header">
+    <h2>🎯 Objectifs Stratégiques</h2>
+    <span class="vision-badge">VISION</span>
+    <span id="obj-count" style="color:#a0a0b0;font-size:0.85rem;">0 objectif</span>
+  </div>
+  <div class="objectives-list" id="objectives-list"></div>
+  <div class="add-task-row" style="margin-top:12px;">
+    <input class="add-task-input" id="new-obj-input" placeholder="✨ Ajouter un objectif stratégique..." />
+    <button class="add-task-btn" onclick="addObjective()">+</button>
   </div>
 </div>
 
 <!-- ============================================================
-     TOOLBAR
+     CONTROLS
 ============================================================ -->
-<div class="toolbar">
-  <button id="btn-export">⬇️ Exporter JSON</button>
-  <button id="btn-import">⬆️ Importer JSON</button>
-  <button id="btn-reset">🔄 Réinitialiser</button>
-</div>
-
-<!-- Tags -->
-<div class="tags-section" id="tags-section">
-  <strong style="color:#aaa;font-size:0.85rem;">🏷️ Tags :</strong>
-  <span class="tag-badge all active" data-tag="all">✕ Tous</span>
-</div>
-
-<!-- Filtres -->
-<div class="filter-section">
-  <strong style="color:#aaa;font-size:0.85rem;">🔍 Filtrer :</strong>
-  <button class="filter-btn active" data-filter="all">Tous</button>
-  <button class="filter-btn" data-filter="not-urgent">🟢 Pas Urgent</button>
-  <button class="filter-btn" data-filter="urgent">🔴 Urgent</button>
-  <button class="filter-btn" data-filter="important">⭐ Important</button>
-  <button class="filter-btn" data-filter="not-important">📌 Pas Important</button>
+<div class="controls">
+  <button class="btn btn-secondary" onclick="exportData()">⬇️ Exporter</button>
+  <button class="btn btn-secondary" onclick="openImportModal()">⬆️ Importer</button>
+  <button class="btn btn-danger"    onclick="resetAll()">🔄 Réinitialiser</button>
 </div>
 
 <!-- ============================================================
-     MATRICE
+     TAGS
+============================================================ -->
+<div class="tags-section">
+  <div class="tags-header">
+    <span>🏷️ Tags :</span>
+    <div class="tag-input-row">
+      <input type="text" id="new-tag-input" placeholder="Nouveau tag..." />
+      <input type="color" id="new-tag-color" class="tag-color-input" value="#667eea" />
+      <button class="add-task-btn" onclick="addTag()" style="padding:6px 12px;">+</button>
+    </div>
+  </div>
+  <div class="tags-list" id="tags-list">
+    <span style="color:#555;font-size:0.82rem;">Aucun tag créé</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     FILTER BAR
+============================================================ -->
+<div class="filter-bar">
+  <span>🔍 Filtrer :</span>
+  <button class="filter-btn active" onclick="setFilter('all',this)">✕ Tous</button>
+  <button class="urgency-filter-btn not-urgent"     onclick="setUrgencyFilter('not-urgent',this)">🟢 PAS URGENT</button>
+  <button class="urgency-filter-btn urgent"         onclick="setUrgencyFilter('urgent',this)">🔴 URGENT</button>
+  <button class="urgency-filter-btn important"      onclick="setUrgencyFilter('important',this)">⭐ IMPORTANT</button>
+  <button class="urgency-filter-btn not-important"  onclick="setUrgencyFilter('not-important',this)">📌 PAS IMPORTANT</button>
+</div>
+
+<!-- ============================================================
+     MATRIX GRID
 ============================================================ -->
 <div class="matrix-grid">
+
   <!-- PLANIFIER -->
-  <div class="quadrant q-planifier" id="q-planifier" data-quadrant="planifier">
+  <div class="quadrant quadrant-plan" id="q-plan"
+       ondragover="onDragOver(event)" ondrop="onDrop(event,'plan')" ondragleave="onDragLeave(event)">
     <div class="quadrant-header">
-      <div>
-        <div class="quadrant-title">📅 Pas Urgent &amp; Important</div>
-        <div class="quadrant-subtitle">PLANIFIER</div>
+      <span class="quadrant-icon">📅</span>
+      <div class="quadrant-title">
+        <h3>Pas Urgent &amp; Important</h3>
+        <p>PLANIFIER</p>
       </div>
+      <span class="score-badge" onclick="collectScore('plan')">🏆 Collecter Score <span id="score-plan">0</span></span>
     </div>
-    <div class="score-bar">
-      <span class="score-label">🏆 Score : <span class="q-score" data-q="planifier">0</span> pts</span>
-      <button class="score-btn" data-pts="5" data-q="planifier">+5</button>
-      <button class="score-btn" data-pts="15" data-q="planifier">+15</button>
-      <button class="score-btn" data-pts="30" data-q="planifier">+30</button>
-      <button class="score-btn" data-pts="60" data-q="planifier">+60</button>
-      <button class="score-btn" data-pts="90" data-q="planifier">+90</button>
+    <div class="point-buttons" id="pts-plan">
+      <button class="point-btn" onclick="selectPoints('plan',5,this)">5 pts</button>
+      <button class="point-btn" onclick="selectPoints('plan',15,this)">15 pts</button>
+      <button class="point-btn" onclick="selectPoints('plan',30,this)">30 pts</button>
+      <button class="point-btn" onclick="selectPoints('plan',60,this)">60 pts</button>
+      <button class="point-btn" onclick="selectPoints('plan',90,this)">90 pts</button>
+      <button class="point-btn" onclick="selectPoints('plan','custom',this)">+</button>
     </div>
-    <div class="add-task-form" data-quadrant="planifier">
-      <input type="text" placeholder="Nouvelle tâche…" />
-      <select class="tag-select"></select>
-      <button>＋</button>
+    <div class="tasks-list" id="tasks-plan"></div>
+    <div class="add-task-row">
+      <input class="add-task-input" id="input-plan" placeholder="+ Ajouter une tâche..." onkeydown="if(event.key==='Enter')addTask('plan')" />
+      <button class="add-task-btn" onclick="addTask('plan')">+</button>
     </div>
-    <div class="task-list" id="list-planifier"></div>
   </div>
 
   <!-- FAIRE -->
-  <div class="quadrant q-faire" id="q-faire" data-quadrant="faire">
+  <div class="quadrant quadrant-do" id="q-do"
+       ondragover="onDragOver(event)" ondrop="onDrop(event,'do')" ondragleave="onDragLeave(event)">
     <div class="quadrant-header">
-      <div>
-        <div class="quadrant-title">🔥 Urgent &amp; Important</div>
-        <div class="quadrant-subtitle">FAIRE</div>
+      <span class="quadrant-icon">🔥</span>
+      <div class="quadrant-title">
+        <h3>Urgent &amp; Important</h3>
+        <p>FAIRE</p>
       </div>
+      <span class="score-badge" onclick="collectScore('do')">🏆 Collecter Score <span id="score-do">0</span></span>
     </div>
-    <div class="score-bar">
-      <span class="score-label">🏆 Score : <span class="q-score" data-q="faire">0</span> pts</span>
-      <button class="score-btn" data-pts="5" data-q="faire">+5</button>
-      <button class="score-btn" data-pts="15" data-q="faire">+15</button>
-      <button class="score-btn" data-pts="30" data-q="faire">+30</button>
-      <button class="score-btn" data-pts="60" data-q="faire">+60</button>
-      <button class="score-btn" data-pts="90" data-q="faire">+90</button>
+    <div class="point-buttons" id="pts-do">
+      <button class="point-btn" onclick="selectPoints('do',5,this)">5 pts</button>
+      <button class="point-btn" onclick="selectPoints('do',15,this)">15 pts</button>
+      <button class="point-btn" onclick="selectPoints('do',30,this)">30 pts</button>
+      <button class="point-btn" onclick="selectPoints('do',60,this)">60 pts</button>
+      <button class="point-btn" onclick="selectPoints('do',90,this)">90 pts</button>
+      <button class="point-btn" onclick="selectPoints('do','custom',this)">+</button>
     </div>
-    <div class="add-task-form" data-quadrant="faire">
-      <input type="text" placeholder="Nouvelle tâche…" />
-      <select class="tag-select"></select>
-      <button>＋</button>
+    <div class="tasks-list" id="tasks-do"></div>
+    <div class="add-task-row">
+      <input class="add-task-input" id="input-do" placeholder="+ Ajouter une tâche..." onkeydown="if(event.key==='Enter')addTask('do')" />
+      <button class="add-task-btn" onclick="addTask('do')">+</button>
     </div>
-    <div class="task-list" id="list-faire"></div>
   </div>
 
   <!-- ÉLIMINER -->
-  <div class="quadrant q-eliminer" id="q-eliminer" data-quadrant="eliminer">
+  <div class="quadrant quadrant-elim" id="q-elim"
+       ondragover="onDragOver(event)" ondrop="onDrop(event,'elim')" ondragleave="onDragLeave(event)">
     <div class="quadrant-header">
-      <div>
-        <div class="quadrant-title">🗑️ Pas Urgent &amp; Pas Important</div>
-        <div class="quadrant-subtitle">ÉLIMINER</div>
+      <span class="quadrant-icon">🗑️</span>
+      <div class="quadrant-title">
+        <h3>Pas Urgent &amp; Pas Important</h3>
+        <p>ÉLIMINER</p>
       </div>
+      <span class="score-badge" onclick="collectScore('elim')">🏆 Collecter Score <span id="score-elim">0</span></span>
     </div>
-    <div class="score-bar">
-      <span class="score-label">🏆 Score : <span class="q-score" data-q="eliminer">0</span> pts</span>
-      <button class="score-btn" data-pts="5" data-q="eliminer">+5</button>
-      <button class="score-btn" data-pts="15" data-q="eliminer">+15</button>
-      <button class="score-btn" data-pts="30" data-q="eliminer">+30</button>
-      <button class="score-btn" data-pts="60" data-q="eliminer">+60</button>
-      <button class="score-btn" data-pts="90" data-q="eliminer">+90</button>
+    <div class="point-buttons" id="pts-elim">
+      <button class="point-btn" onclick="selectPoints('elim',5,this)">5 pts</button>
+      <button class="point-btn" onclick="selectPoints('elim',15,this)">15 pts</button>
+      <button class="point-btn" onclick="selectPoints('elim',30,this)">30 pts</button>
+      <button class="point-btn" onclick="selectPoints('elim',60,this)">60 pts</button>
+      <button class="point-btn" onclick="selectPoints('elim',90,this)">90 pts</button>
+      <button class="point-btn" onclick="selectPoints('elim','custom',this)">+</button>
     </div>
-    <div class="add-task-form" data-quadrant="eliminer">
-      <input type="text" placeholder="Nouvelle tâche…" />
-      <select class="tag-select"></select>
-      <button>＋</button>
+    <div class="tasks-list" id="tasks-elim"></div>
+    <div class="add-task-row">
+      <input class="add-task-input" id="input-elim" placeholder="+ Ajouter une tâche..." onkeydown="if(event.key==='Enter')addTask('elim')" />
+      <button class="add-task-btn" onclick="addTask('elim')">+</button>
     </div>
-    <div class="task-list" id="list-eliminer"></div>
   </div>
 
   <!-- DÉLÉGUER -->
-  <div class="quadrant q-deleguer" id="q-deleguer" data-quadrant="deleguer">
+  <div class="quadrant quadrant-deleg" id="q-deleg"
+       ondragover="onDragOver(event)" ondrop="onDrop(event,'deleg')" ondragleave="onDragLeave(event)">
     <div class="quadrant-header">
-      <div>
-        <div class="quadrant-title">📞 Urgent &amp; Pas Important</div>
-        <div class="quadrant-subtitle">DÉLÉGUER</div>
+      <span class="quadrant-icon">📞</span>
+      <div class="quadrant-title">
+        <h3>Urgent &amp; Pas Important</h3>
+        <p>DÉLÉGUER</p>
       </div>
+      <span class="score-badge" onclick="collectScore('deleg')">🏆 Collecter Score <span id="score-deleg">0</span></span>
     </div>
-    <div class="score-bar">
-      <span class="score-label">🏆 Score : <span class="q-score" data-q="deleguer">0</span> pts</span>
-      <button class="score-btn" data-pts="5" data-q="deleguer">+5</button>
-      <button class="score-btn" data-pts="15" data-q="deleguer">+15</button>
-      <button class="score-btn" data-pts="30" data-q="deleguer">+30</button>
-      <button class="score-btn" data-pts="60" data-q="deleguer">+60</button>
-      <button class="score-btn" data-pts="90" data-q="deleguer">+90</button>
+    <div class="point-buttons" id="pts-deleg">
+      <button class="point-btn" onclick="selectPoints('deleg',5,this)">5 pts</button>
+      <button class="point-btn" onclick="selectPoints('deleg',15,this)">15 pts</button>
+      <button class="point-btn" onclick="selectPoints('deleg',30,this)">30 pts</button>
+      <button class="point-btn" onclick="selectPoints('deleg',60,this)">60 pts</button>
+      <button class="point-btn" onclick="selectPoints('deleg',90,this)">90 pts</button>
+      <button class="point-btn" onclick="selectPoints('deleg','custom',this)">+</button>
     </div>
-    <div class="add-task-form" data-quadrant="deleguer">
-      <input type="text" placeholder="Nouvelle tâche…" />
-      <select class="tag-select"></select>
-      <button>＋</button>
+    <div class="tasks-list" id="tasks-deleg"></div>
+    <div class="add-task-row">
+      <input class="add-task-input" id="input-deleg" placeholder="+ Ajouter une tâche..." onkeydown="if(event.key==='Enter')addTask('deleg')" />
+      <button class="add-task-btn" onclick="addTask('deleg')">+</button>
     </div>
-    <div class="task-list" id="list-deleguer"></div>
   </div>
-</div>
+
+</div><!-- /matrix-grid -->
 
 <!-- ============================================================
      BACKLOG
 ============================================================ -->
-<div class="backlog-panel">
-  <h2>📦 Backlog — À TRIER (<span id="backlog-count">0</span> tâche(s))</h2>
-  <div class="score-bar">
-    <button class="score-btn" data-pts="5" data-q="backlog">+5</button>
-    <button class="score-btn" data-pts="15" data-q="backlog">+15</button>
-    <button class="score-btn" data-pts="30" data-q="backlog">+30</button>
-    <button class="score-btn" data-pts="60" data-q="backlog">+60</button>
-    <button class="score-btn" data-pts="90" data-q="backlog">+90</button>
+<div class="backlog-section"
+     ondragover="onDragOver(event)" ondrop="onDrop(event,'backlog')" ondragleave="onDragLeave(event)">
+  <div class="backlog-header">
+    <span style="font-size:1.3rem;">📦</span>
+    <h3>Backlog</h3>
+    <span class="backlog-count" id="backlog-count">0 tâche</span>
+    <p style="color:#a0a0b0;font-size:0.78rem;margin-left:auto;">À TRIER</p>
   </div>
-  <div class="add-task-form" data-quadrant="backlog">
-    <input type="text" placeholder="Nouvelle tâche backlog…" />
-    <select class="tag-select"></select>
-    <button>＋</button>
+  <div class="point-buttons" id="pts-backlog">
+    <button class="point-btn" onclick="selectPoints('backlog',5,this)">5 pts</button>
+    <button class="point-btn" onclick="selectPoints('backlog',15,this)">15 pts</button>
+    <button class="point-btn" onclick="selectPoints('backlog',30,this)">30 pts</button>
+    <button class="point-btn" onclick="selectPoints('backlog',60,this)">60 pts</button>
+    <button class="point-btn" onclick="selectPoints('backlog',90,this)">90 pts</button>
+    <button class="point-btn" onclick="selectPoints('backlog','custom',this)">+</button>
   </div>
-  <div class="task-list" id="list-backlog"></div>
+  <div class="tasks-list" id="tasks-backlog"></div>
+  <div class="add-task-row">
+    <input class="add-task-input" id="input-backlog" placeholder="+ Ajouter une tâche au backlog..." onkeydown="if(event.key==='Enter')addTask('backlog')" />
+    <button class="add-task-btn" onclick="addTask('backlog')">+</button>
+  </div>
 </div>
 
 <!-- ============================================================
-     SCORE TOTAL
+     COMPLETED
 ============================================================ -->
-<div class="score-panel">
-  <h2>🏆 Score Total</h2>
-  <div class="total" id="total-score">0 pts</div>
-  <button id="btn-reset-score">🔄 Réinitialiser le score</button>
-</div>
-
-<!-- ============================================================
-     TÂCHES COMPLÉTÉES
-============================================================ -->
-<div class="completed-panel">
-  <h2>🌟 Tâches Réussies — COMPLÉTÉES</h2>
+<div class="completed-section">
+  <div class="completed-header">
+    <span style="font-size:1.3rem;">🏆</span>
+    <h3>Tâches Réussies</h3>
+    <span style="color:#a0a0b0;font-size:0.78rem;">COMPLÉTÉES</span>
+    <span class="total-score">🌟 Score total : <span id="total-score">0</span> pts</span>
+    <button class="reset-score-btn" onclick="resetScore()">🔄 Réinitialiser le score</button>
+  </div>
   <div id="completed-list">
-    <p style="color:#666;font-size:0.88rem;">Aucune tâche réussie pour l'instant… 🎯</p>
+    <div class="empty-state">Aucune tâche réussie pour l'instant… Cochez des tâches et collectez votre score ! 🎯</div>
   </div>
 </div>
 
 <!-- ============================================================
-     MODAL IMPORT
+     IMPORT MODAL
 ============================================================ -->
-<div class="modal-overlay" id="modal-import">
+<div class="modal-overlay" id="import-modal">
   <div class="modal">
-    <h3>⬆️ Importer une sauvegarde JSON</h3>
-    <p style="color:#aaa;font-size:0.85rem;margin-bottom:10px;">
-      Collez le contenu JSON. <strong>Attention :</strong> les données actuelles seront remplacées.
-    </p>
-    <textarea id="import-textarea" placeholder='{"version":"1.0","tasks":{...}}'></textarea>
-    <div class="error" id="import-error" style="display:none;"></div>
+    <h3>⬆️ Importer une sauvegarde</h3>
+    <p>Collez le contenu JSON de votre fichier de sauvegarde.<br><strong>Attention :</strong> les données actuelles seront remplacées.</p>
+    <textarea id="import-textarea" placeholder='{"tasks":{},"tags":[],...}'></textarea>
+    <div class="modal-error" id="import-error">❌ JSON invalide ou format incorrect.</div>
     <div class="modal-actions">
-      <button class="btn-cancel" id="btn-cancel-import">Annuler</button>
-      <button class="btn-confirm" id="btn-confirm-import">⬆️ Importer</button>
+      <button class="btn btn-secondary" onclick="closeImportModal()">Annuler</button>
+      <button class="btn btn-primary"   onclick="importData()">⬆️ Importer</button>
     </div>
   </div>
 </div>
 
+<!-- TOAST -->
+<div id="toast"></div>
+
 <!-- ============================================================
-     SCRIPT
+     JAVASCRIPT
 ============================================================ -->
 <script>
-// ============================================================
-// 🔧 CONFIGURATION GITHUB GIST
-// ============================================================
-const GITHUB_CONFIG = {
-  token:    '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', // ⚠️ Remplace par ton token
-  gistId:   'fcd3fd7c8f0f33b1cbd57e5549cba53d',
-  filename: 'eisenhower_data.json'
-};
-
-// ============================================================
-// 📦 STATE
-// ============================================================
+/* ================================================================
+   STATE
+================================================================ */
 let state = {
-  tasks:      { planifier: [], faire: [], eliminer: [], deleguer: [], backlog: [] },
+  tasks: { plan:[], do:[], elim:[], deleg:[], backlog:[] },
   objectives: [],
-  tags:       [],
-  scores:     { planifier: 0, faire: 0, eliminer: 0, deleguer: 0, backlog: 0 },
+  tags: [],
+  scores: { plan:0, do:0, elim:0, deleg:0, backlog:0 },
+  selectedPoints: { plan:5, do:5, elim:5, deleg:5, backlog:5 },
+  completedTasks: [],
   totalScore: 0,
-  completed:  []
+  filter: 'all',
+  urgencyFilter: null
 };
 
-let activeTag    = 'all';
-let activeFilter = 'all';
-let draggedTask  = null;
+let draggedTaskId   = null;
+let draggedFromQuad = null;
 
-const QUADRANTS = ['planifier', 'faire', 'eliminer', 'deleguer', 'backlog'];
+/* ================================================================
+   GITHUB GIST CONFIG
+================================================================ */
+let ghToken  = localStorage.getItem('gh_token')  || '';
+let ghGistId = localStorage.getItem('gh_gist_id') || '';
 
-// ============================================================
-// 🐙 GITHUB GIST — FONCTIONS
-// ============================================================
+let syncDebounceTimer = null;
 
-function showGistStatus(type, message) {
-  const el = document.getElementById('gist-status');
-  const colors = { loading:'#f0ad4e', success:'#43e97b', error:'#f5576c', info:'#4facfe' };
-  el.style.color = colors[type] || '#ccc';
-  el.textContent = message;
-  if (type === 'success' || type === 'info') {
-    setTimeout(() => { el.textContent = ''; }, 4000);
-  }
+function saveGithubConfig() {
+  ghToken  = document.getElementById('gh-token').value.trim();
+  ghGistId = document.getElementById('gh-gist-id').value.trim();
+  localStorage.setItem('gh_token',  ghToken);
+  localStorage.setItem('gh_gist_id', ghGistId);
+  showToast('✅ Configuration GitHub enregistrée');
+  setSyncStatus('busy', '⏳ Test de connexion…');
+  syncToGist();
 }
 
-async function loadFromGist() {
-  showGistStatus('loading', '⏳ Chargement depuis GitHub…');
-  try {
-    const res = await fetch(`https://api.github.com/gists/${GITHUB_CONFIG.gistId}`, {
-      headers: {
-        'Authorization': `token ${GITHUB_CONFIG.token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const gist = await res.json();
-    const file = gist.files[GITHUB_CONFIG.filename];
-    if (!file) {
-      showGistStatus('info', 'ℹ️ Aucune donnée sur GitHub. Démarrage vierge.');
-      return;
-    }
-    const data = JSON.parse(file.content);
-    applyState(data);
-    renderAll();
-    showGistStatus('success', '✅ Données chargées depuis GitHub !');
-  } catch (e) {
-    showGistStatus('error', `❌ Erreur chargement : ${e.message}`);
-  }
+function setSyncStatus(type, msg) {
+  const el = document.getElementById('sync-status');
+  el.className = 'sync-status ' + type;
+  el.textContent = msg;
 }
 
-async function saveToGist() {
-  showGistStatus('loading', '⏳ Sauvegarde…');
-  try {
-    const content = JSON.stringify(state, null, 2);
-    const res = await fetch(`https://api.github.com/gists/${GITHUB_CONFIG.gistId}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `token ${GITHUB_CONFIG.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        files: { [GITHUB_CONFIG.filename]: { content } }
-      })
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const now = new Date().toLocaleTimeString('fr-FR');
-    showGistStatus('success', `✅ Sauvegardé à ${now}`);
-  } catch (e) {
-    showGistStatus('error', `❌ Erreur sauvegarde : ${e.message}`);
-  }
-}
-
-// Debounce : attend 1.5s après la dernière action
-function debounce(fn, delay) {
-  let t;
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
-}
-const autoSave = debounce(saveToGist, 1500);
-
-// ============================================================
-// 🔄 STATE HELPERS
-// ============================================================
-
-function applyState(data) {
-  if (!data) return;
-  state.tasks      = data.tasks      || { planifier:[], faire:[], eliminer:[], deleguer:[], backlog:[] };
-  state.objectives = data.objectives || [];
-  state.tags       = data.tags       || [];
-  state.scores     = data.scores     || { planifier:0, faire:0, eliminer:0, deleguer:0, backlog:0 };
-  state.totalScore = data.totalScore || 0;
-  state.completed  = data.completed  || [];
-}
-
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-// ============================================================
-// 🎨 RENDER
-// ============================================================
-
-function renderAll() {
-  renderObjectives();
-  renderTags();
-  QUADRANTS.forEach(renderTasks);
-  renderScores();
-  renderCompleted();
-  updateTagSelects();
-}
-
-/* --- Objectifs --- */
-function renderObjectives() {
-  const list = document.getElementById('objectives-list');
-  const count = document.getElementById('obj-count');
-  list.innerHTML = '';
-  count.textContent = state.objectives.length;
-  state.objectives.forEach((obj, i) => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span>🎯 ${obj}</span>
-      <button class="del-obj" data-i="${i}">🗑️</button>`;
-    list.appendChild(li);
-  });
-}
-
-/* --- Tags --- */
-function renderTags() {
-  const section = document.getElementById('tags-section');
-  // Garde le label et le badge "Tous"
-  const existing = section.querySelectorAll('.tag-badge:not(.all)');
-  existing.forEach(e => e.remove());
-
-  state.tags.forEach(tag => {
-    const span = document.createElement('span');
-    span.className = 'tag-badge' + (activeTag === tag.name ? ' active' : '');
-    span.dataset.tag = tag.name;
-    span.style.background = tag.color;
-    span.style.color = '#fff';
-    span.textContent = tag.name;
-    section.appendChild(span);
-  });
-
-  // Mettre à jour le badge "Tous"
-  const allBadge = section.querySelector('.tag-badge.all');
-  if (allBadge) allBadge.className = 'tag-badge all' + (activeTag === 'all' ? ' active' : '');
-}
-
-function updateTagSelects() {
-  document.querySelectorAll('.tag-select').forEach(sel => {
-    const val = sel.value;
-    sel.innerHTML = '<option value="">— Tag —</option>';
-    state.tags.forEach(tag => {
-      const opt = document.createElement('option');
-      opt.value = tag.name;
-      opt.textContent = tag.name;
-      sel.appendChild(opt);
-    });
-    sel.value = val;
-  });
-}
-
-/* --- Tâches --- */
-function renderTasks(quadrant) {
-  const list = document.getElementById(`list-${quadrant}`);
-  list.innerHTML = '';
-
-  let tasks = state.tasks[quadrant] || [];
-
-  // Filtre tag
-  if (activeTag !== 'all') tasks = tasks.filter(t => t.tag === activeTag);
-
-  // Filtre urgence/importance
-  if (activeFilter !== 'all') {
-    const map = {
-      'urgent':       ['faire','deleguer'],
-      'not-urgent':   ['planifier','eliminer'],
-      'important':    ['faire','planifier'],
-      'not-important':['eliminer','deleguer']
-    };
-    if (map[activeFilter] && !map[activeFilter].includes(quadrant)) {
-      if (quadrant !== 'backlog') { list.innerHTML = ''; return; }
-    }
-  }
-
-  if (tasks.length === 0) {
-    list.innerHTML = '<p style="color:#555;font-size:0.82rem;text-align:center;padding:10px;">Aucune tâche</p>';
-  }
-
-  tasks.forEach(task => {
-    const div = document.createElement('div');
-    div.className = 'task-item' + (task.done ? ' done' : '');
-    div.draggable = true;
-    div.dataset.id = task.id;
-    div.dataset.quadrant = quadrant;
-
-    const tagObj = state.tags.find(t => t.name === task.tag);
-    const tagHtml = tagObj
-      ? `<span class="task-tag" style="background:${tagObj.color};color:#fff">${tagObj.name}</span>`
-      : '';
-
-    div.innerHTML = `
-      <input type="checkbox" ${task.done ? 'checked' : ''} data-id="${task.id}" data-q="${quadrant}" />
-      <span class="task-text">${task.text}</span>
-      ${tagHtml}
-      <span class="task-pts">${task.pts ? task.pts+'pts' : ''}</span>
-      <div class="task-actions">
-        <button class="btn-edit-task" data-id="${task.id}" data-q="${quadrant}" title="Modifier">✏️</button>
-        <button class="btn-del-task"  data-id="${task.id}" data-q="${quadrant}" title="Supprimer">🗑️</button>
-      </div>`;
-
-    // Drag
-    div.addEventListener('dragstart', e => {
-      draggedTask = { id: task.id, from: quadrant };
-      div.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    div.addEventListener('dragend', () => div.classList.remove('dragging'));
-
-    list.appendChild(div);
-  });
-
-  // Backlog count
-  if (quadrant === 'backlog') {
-    document.getElementById('backlog-count').textContent = state.tasks.backlog.length;
-  }
-}
-
-/* --- Scores --- */
-function renderScores() {
-  QUADRANTS.forEach(q => {
-    const el = document.querySelector(`.q-score[data-q="${q}"]`);
-    if (el) el.textContent = state.scores[q] || 0;
-  });
-  document.getElementById('total-score').textContent = state.totalScore + ' pts';
-}
-
-/* --- Complétées --- */
-function renderCompleted() {
-  const el = document.getElementById('completed-list');
-  if (state.completed.length === 0) {
-    el.innerHTML = '<p style="color:#666;font-size:0.88rem;">Aucune tâche réussie pour l\'instant… 🎯</p>';
+async function syncToGist() {
+  if (!ghToken) {
+    setSyncStatus('error', '❌ Token manquant');
     return;
   }
-  el.innerHTML = '';
-  state.completed.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'completed-item';
-    div.innerHTML = `<span>✅ ${t.text}</span>
-      <span style="color:#aaa;font-size:0.78rem;">${t.quadrant}</span>
-      <span class="completed-pts">+${t.pts || 0} pts</span>`;
-    el.appendChild(div);
+
+  setSyncStatus('busy', '⏳ Synchronisation…');
+
+  const content = JSON.stringify(state, null, 2);
+  const filename = 'eisenhower-matrix.json';
+
+  try {
+    let response;
+    if (ghGistId) {
+      // PATCH existing gist
+      response = await fetch(`https://api.github.com/gists/${ghGistId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `token ${ghToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          description: 'Matrice Eisenhower – sauvegarde automatique',
+          files: { [filename]: { content } }
+        })
+      });
+    } else {
+      // POST new gist
+      response = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: {
+          'Authorization': `token ${ghToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          description: 'Matrice Eisenhower – sauvegarde automatique',
+          public: false,
+          files: { [filename]: { content } }
+        })
+      });
+    }
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || response.statusText);
+    }
+
+    const data = await response.json();
+
+    // Store gist ID if newly created
+    if (!ghGistId) {
+      ghGistId = data.id;
+      localStorage.setItem('gh_gist_id', ghGistId);
+      document.getElementById('gh-gist-id').value = ghGistId;
+    }
+
+    // Show link
+    const link = document.getElementById('gist-link');
+    link.href = data.html_url;
+    link.style.display = 'inline';
+
+    setSyncStatus('ok', '✅ Synchronisé ' + new Date().toLocaleTimeString());
+    saveLocal(); // also save locally
+
+  } catch(e) {
+    setSyncStatus('error', '❌ Erreur : ' + e.message);
+    console.error('Gist sync error:', e);
+    saveLocal();
+  }
+}
+
+/** Debounced sync – called after every state change */
+function triggerSync() {
+  saveLocal();
+  if (!ghToken) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => syncToGist(), 800);
+}
+
+/* ================================================================
+   LOCAL STORAGE
+================================================================ */
+function saveLocal() {
+  localStorage.setItem('eisenhower_state', JSON.stringify(state));
+}
+
+function loadLocal() {
+  const raw = localStorage.getItem('eisenhower_state');
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      // Merge to keep structure safe
+      state.tasks         = parsed.tasks         || state.tasks;
+      state.objectives    = parsed.objectives    || [];
+      state.tags          = parsed.tags          || [];
+      state.scores        = parsed.scores        || state.scores;
+      state.selectedPoints= parsed.selectedPoints|| state.selectedPoints;
+      state.completedTasks= parsed.completedTasks|| [];
+      state.totalScore    = parsed.totalScore    || 0;
+      state.filter        = parsed.filter        || 'all';
+      state.urgencyFilter = parsed.urgencyFilter || null;
+    } catch(e) { console.warn('Could not parse local state'); }
+  }
+}
+
+/* ================================================================
+   TOAST
+================================================================ */
+function showToast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+/* ================================================================
+   TAGS
+================================================================ */
+function renderTags() {
+  const list = document.getElementById('tags-list');
+  if (state.tags.length === 0) {
+    list.innerHTML = '<span style="color:#555;font-size:0.82rem;">Aucun tag créé</span>';
+    return;
+  }
+  list.innerHTML = '';
+  state.tags.forEach(tag => {
+    const b = document.createElement('span');
+    b.className = 'tag-badge' + (state.filter === tag.id ? ' selected' : '');
+    b.style.background = tag.color + '33';
+    b.style.color = tag.color;
+    b.style.borderColor = state.filter === tag.id ? tag.color : 'transparent';
+    b.innerHTML = `${tag.name} <button class="tag-delete" onclick="deleteTag('${tag.id}',event)">✕</button>`;
+    b.onclick = (e) => { if (!e.target.classList.contains('tag-delete')) setFilter(tag.id, null); };
+    list.appendChild(b);
   });
 }
 
-// ============================================================
-// ⚡ ACTIONS
-// ============================================================
-
-/* Ajouter tâche */
-function addTask(quadrant, text, tag) {
-  if (!text.trim()) return;
-  const task = { id: generateId(), text: text.trim(), tag, done: false, pts: 0 };
-  state.tasks[quadrant].push(task);
-  renderTasks(quadrant);
-  if (quadrant === 'backlog') document.getElementById('backlog-count').textContent = state.tasks.backlog.length;
-  autoSave();
+function addTag() {
+  const input = document.getElementById('new-tag-input');
+  const color = document.getElementById('new-tag-color');
+  const name  = input.value.trim();
+  if (!name) return;
+  const tag = { id: 'tag_' + Date.now(), name, color: color.value };
+  state.tags.push(tag);
+  input.value = '';
+  renderTags();
+  renderAll();
+  triggerSync();
 }
 
-/* Supprimer tâche */
-function deleteTask(id, quadrant) {
-  state.tasks[quadrant] = state.tasks[quadrant].filter(t => t.id !== id);
-  renderTasks(quadrant);
-  autoSave();
+function deleteTag(id, e) {
+  e.stopPropagation();
+  state.tags = state.tags.filter(t => t.id !== id);
+  // Remove tag from tasks
+  Object.keys(state.tasks).forEach(q => {
+    state.tasks[q].forEach(t => { if (t.tagId === id) t.tagId = null; });
+  });
+  if (state.filter === id) state.filter = 'all';
+  renderTags();
+  renderAll();
+  triggerSync();
 }
 
-/* Modifier tâche */
-function editTask(id, quadrant) {
-  const task = state.tasks[quadrant].find(t => t.id === id);
-  if (!task) return;
-  const newText = prompt('Modifier la tâche :', task.text);
-  if (newText !== null && newText.trim()) {
-    task.text = newText.trim();
-    renderTasks(quadrant);
-    autoSave();
+function getTagById(id) { return state.tags.find(t => t.id === id); }
+
+/* ================================================================
+   FILTER
+================================================================ */
+function setFilter(val, btn) {
+  state.filter = val;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    // deselect all filter-btns
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      if (b.textContent.includes('Tous')) b.classList.remove('active');
+    });
   }
+  renderTags();
+  renderAll();
+  triggerSync();
 }
 
-/* Cocher/décocher */
-function toggleTask(id, quadrant) {
-  const task = state.tasks[quadrant].find(t => t.id === id);
-  if (!task) return;
-  task.done = !task.done;
-  if (task.done) {
-    state.completed.unshift({ ...task, quadrant, completedAt: new Date().toISOString() });
+function setUrgencyFilter(val, btn) {
+  if (state.urgencyFilter === val) {
+    state.urgencyFilter = null;
+    btn.classList.remove('active');
   } else {
-    state.completed = state.completed.filter(c => c.id !== id);
+    state.urgencyFilter = val;
+    document.querySelectorAll('.urgency-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
   }
-  renderTasks(quadrant);
-  renderCompleted();
-  autoSave();
+  renderAll();
+  triggerSync();
 }
 
-/* Déplacer tâche (drag & drop) */
-function moveTask(id, from, to) {
-  if (from === to) return;
-  const idx = state.tasks[from].findIndex(t => t.id === id);
-  if (idx === -1) return;
-  const [task] = state.tasks[from].splice(idx, 1);
-  state.tasks[to].push(task);
-  renderTasks(from);
-  renderTasks(to);
-  autoSave();
+function taskMatchesFilter(task) {
+  // Tag filter
+  if (state.filter !== 'all' && task.tagId !== state.filter) return false;
+  // Urgency filter
+  if (state.urgencyFilter) {
+    const q = task.quadrant;
+    if (state.urgencyFilter === 'urgent'       && !['do','deleg'].includes(q))   return false;
+    if (state.urgencyFilter === 'not-urgent'   && !['plan','elim'].includes(q))  return false;
+    if (state.urgencyFilter === 'important'    && !['plan','do'].includes(q))    return false;
+    if (state.urgencyFilter === 'not-important'&& !['elim','deleg'].includes(q)) return false;
+  }
+  return true;
 }
 
-/* Score boutons */
-function addScore(quadrant, pts) {
-  state.scores[quadrant] = (state.scores[quadrant] || 0) + pts;
-  state.totalScore += pts;
-  renderScores();
-  autoSave();
+/* ================================================================
+   OBJECTIVES
+================================================================ */
+function renderObjectives() {
+  const list = document.getElementById('objectives-list');
+  list.innerHTML = '';
+  state.objectives.forEach((obj, i) => {
+    const div = document.createElement('div');
+    div.className = 'objective-item';
+    div.innerHTML = `
+      <input type="checkbox" ${obj.done ? 'checked' : ''} onchange="toggleObjective(${i})" />
+      <input type="text" class="objective-text ${obj.done ? 'completed' : ''}"
+             value="${escHtml(obj.text)}"
+             onchange="editObjective(${i}, this.value)"
+             placeholder="Objectif stratégique..." />
+      <button class="delete-obj-btn" onclick="deleteObjective(${i})">🗑️</button>
+    `;
+    list.appendChild(div);
+  });
+  document.getElementById('obj-count').textContent = state.objectives.length + ' objectif' + (state.objectives.length > 1 ? 's' : '');
 }
 
-/* Objectifs */
-function addObjective(text) {
-  if (!text.trim()) return;
-  state.objectives.push(text.trim());
+function addObjective() {
+  const input = document.getElementById('new-obj-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  state.objectives.push({ text, done: false });
+  input.value = '';
   renderObjectives();
-  autoSave();
+  triggerSync();
 }
+
+function toggleObjective(i) {
+  state.objectives[i].done = !state.objectives[i].done;
+  renderObjectives();
+  triggerSync();
+}
+
+function editObjective(i, val) {
+  state.objectives[i].text = val;
+  triggerSync();
+}
+
 function deleteObjective(i) {
   state.objectives.splice(i, 1);
   renderObjectives();
-  autoSave();
+  triggerSync();
 }
 
-/* Tags */
-function addTag(name) {
-  if (!name.trim() || state.tags.find(t => t.name === name)) return;
-  const colors = ['#f5576c','#4facfe','#43e97b','#f093fb','#ffd700','#00f2fe','#fa709a'];
-  const color = colors[state.tags.length % colors.length];
-  state.tags.push({ name: name.trim(), color });
-  renderTags();
-  updateTagSelects();
-  autoSave();
+/* ================================================================
+   TASKS – CRUD
+================================================================ */
+function generateId() { return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
+
+function addTask(quadrant) {
+  const input = document.getElementById('input-' + quadrant);
+  const text  = input.value.trim();
+  if (!text) return;
+  const task = {
+    id: generateId(),
+    text,
+    quadrant,
+    tagId: null,
+    points: state.selectedPoints[quadrant] || 5,
+    done: false,
+    createdAt: new Date().toISOString()
+  };
+  state.tasks[quadrant].push(task);
+  input.value = '';
+  renderQuadrant(quadrant);
+  updateBacklogCount();
+  triggerSync();
+  showToast('✅ Tâche ajoutée');
 }
 
-// ============================================================
-// 📤 EXPORT / IMPORT JSON
-// ============================================================
-
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'eisenhower_backup.json';
-  a.click();
+function deleteTask(id, quadrant) {
+  state.tasks[quadrant] = state.tasks[quadrant].filter(t => t.id !== id);
+  renderQuadrant(quadrant);
+  updateBacklogCount();
+  triggerSync();
+  showToast('🗑️ Tâche supprimée');
 }
 
-function importJSON(jsonStr) {
-  try {
-    const data = JSON.parse(jsonStr);
-    applyState(data);
-    renderAll();
-    autoSave();
-    return true;
-  } catch {
-    return false;
+function editTaskText(id, quadrant, newText) {
+  const task = state.tasks[quadrant].find(t => t.id === id);
+  if (task) { task.text = newText; triggerSync(); }
+}
+
+function toggleTaskDone(id, quadrant) {
+  const task = state.tasks[quadrant].find(t => t.id === id);
+  if (task) {
+    task.done = !task.done;
+    renderQuadrant(quadrant);
+    triggerSync();
   }
 }
 
-// ============================================================
-// 🖱️ DRAG & DROP — QUADRANTS
-// ============================================================
+function setTaskTag(id, quadrant, tagId) {
+  const task = state.tasks[quadrant].find(t => t.id === id);
+  if (task) {
+    task.tagId = (task.tagId === tagId) ? null : tagId;
+    renderQuadrant(quadrant);
+    triggerSync();
+  }
+}
 
-document.querySelectorAll('.quadrant, .backlog-panel').forEach(zone => {
-  zone.addEventListener('dragover', e => {
-    e.preventDefault();
-    zone.classList.add('drag-over');
+/* ================================================================
+   POINTS & SCORE
+================================================================ */
+function selectPoints(quadrant, pts, btn) {
+  if (pts === 'custom') {
+    const val = parseInt(prompt('Entrez le nombre de points :'), 10);
+    if (!isNaN(val) && val > 0) pts = val;
+    else return;
+  }
+  state.selectedPoints[quadrant] = pts;
+  // Update UI buttons
+  document.querySelectorAll(`#pts-${quadrant} .point-btn`).forEach(b => b.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  // Update pending score display
+  updateQuadrantScore(quadrant);
+  triggerSync();
+}
+
+function updateQuadrantScore(quadrant) {
+  const checked = state.tasks[quadrant].filter(t => t.done);
+  const pts = state.selectedPoints[quadrant] || 5;
+  const total = checked.length * pts;
+  const el = document.getElementById('score-' + quadrant);
+  if (el) el.textContent = total;
+}
+
+function collectScore(quadrant) {
+  const checked = state.tasks[quadrant].filter(t => t.done);
+  if (checked.length === 0) { showToast('⚠️ Aucune tâche cochée à collecter'); return; }
+  const pts = state.selectedPoints[quadrant] || 5;
+  checked.forEach(task => {
+    task.collectedPoints = pts;
+    state.completedTasks.push({ ...task, collectedAt: new Date().toISOString() });
+    state.totalScore += pts;
   });
-  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    zone.classList.remove('drag-over');
-    const to = zone.dataset.quadrant || 'backlog';
-    if (draggedTask) moveTask(draggedTask.id, draggedTask.from, to);
-    draggedTask = null;
-  });
-});
+  state.tasks[quadrant] = state.tasks[quadrant].filter(t => !t.done);
+  renderQuadrant(quadrant);
+  renderCompleted();
+  updateBacklogCount();
+  triggerSync();
+  showToast(`🏆 +${checked.length * pts} pts collectés !`);
+}
 
-// ============================================================
-// 🎯 EVENT LISTENERS
-// ============================================================
+function resetScore() {
+  if (!confirm('Réinitialiser le score et vider les tâches complétées ?')) return;
+  state.completedTasks = [];
+  state.totalScore = 0;
+  renderCompleted();
+  triggerSync();
+}
 
-/* GitHub */
-document.getElementById('btn-load').addEventListener('click', loadFromGist);
-document.getElementById('btn-save').addEventListener('click', saveToGist);
+/* ================================================================
+   DRAG & DROP
+================================================================ */
+function onDragStart(e, id, quadrant) {
+  draggedTaskId   = id;
+  draggedFromQuad = quadrant;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = document.getElementById(id); if(el) el.classList.add('dragging'); }, 0);
+}
 
-/* Export / Import / Reset */
-document.getElementById('btn-export').addEventListener('click', exportJSON);
-document.getElementById('btn-import').addEventListener('click', () => {
-  document.getElementById('modal-import').classList.add('open');
-  document.getElementById('import-error').style.display = 'none';
-  document.getElementById('import-textarea').value = '';
-});
-document.getElementById('btn-cancel-import').addEventListener('click', () => {
-  document.getElementById('modal-import').classList.remove('open');
-});
-document.getElementById('btn-confirm-import').addEventListener('click', () => {
-  const json = document.getElementById('import-textarea').value;
-  const ok = importJSON(json);
-  if (!ok) {
-    document.getElementById('import-error').style.display = 'block';
-    document.getElementById('import-error').textContent = '❌ JSON invalide ou format incorrect.';
+function onDragEnd(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('dragging');
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onDrop(e, targetQuad) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!draggedTaskId || draggedFromQuad === targetQuad) return;
+  const task = state.tasks[draggedFromQuad].find(t => t.id === draggedTaskId);
+  if (!task) return;
+  state.tasks[draggedFromQuad] = state.tasks[draggedFromQuad].filter(t => t.id !== draggedTaskId);
+  task.quadrant = targetQuad;
+  state.tasks[targetQuad].push(task);
+  renderQuadrant(draggedFromQuad);
+  renderQuadrant(targetQuad);
+  updateBacklogCount();
+  triggerSync();
+  showToast('↔️ Tâche déplacée');
+  draggedTaskId = draggedFromQuad = null;
+}
+
+/* ================================================================
+   RENDER
+================================================================ */
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderQuadrant(quadrant) {
+  const container = document.getElementById('tasks-' + quadrant);
+  const tasks = state.tasks[quadrant].filter(t => taskMatchesFilter(t));
+
+  if (tasks.length === 0) {
+    container.innerHTML = '<div class="empty-state">Glissez des tâches ici ou ajoutez-en une ✨</div>';
   } else {
-    document.getElementById('modal-import').classList.remove('open');
-  }
-});
+    container.innerHTML = '';
+    tasks.forEach(task => {
+      const tag = task.tagId ? getTagById(task.tagId) : null;
+      const div = document.createElement('div');
+      div.className = 'task-item' + (task.done ? ' completed-task' : '');
+      div.id = task.id;
+      div.draggable = true;
+      div.addEventListener('dragstart', e => onDragStart(e, task.id, quadrant));
+      div.addEventListener('dragend',   () => onDragEnd(task.id));
 
-document.getElementById('btn-reset').addEventListener('click', () => {
-  if (!confirm('Réinitialiser toutes les données ?')) return;
+      div.innerHTML = `
+        <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''}
+               onchange="toggleTaskDone('${task.id}','${quadrant}')" />
+        <div class="task-content">
+          <textarea class="task-text" rows="1"
+                    onchange="editTaskText('${task.id}','${quadrant}',this.value)"
+                    oninput="autoResize(this)">${escHtml(task.text)}</textarea>
+          <div class="task-meta">
+            ${tag ? `<span class="task-tag" style="background:${tag.color}33;color:${tag.color}">${tag.name}</span>` : ''}
+            <span class="task-points">⭐ ${task.points || 5} pts</span>
+            <span class="task-date">${new Date(task.createdAt).toLocaleDateString('fr-FR')}</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="task-action-btn" title="Tag" onclick="toggleTagSelector('${task.id}','${quadrant}',this)">🏷️</button>
+          <button class="task-action-btn" title="Supprimer" onclick="deleteTask('${task.id}','${quadrant}')">🗑️</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+  updateQuadrantScore(quadrant);
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function toggleTagSelector(taskId, quadrant, btn) {
+  // Close any open selectors
+  document.querySelectorAll('.task-tag-selector').forEach(s => s.remove());
+
+  if (state.tags.length === 0) { showToast('⚠️ Créez d\'abord des tags'); return; }
+
+  const task = state.tasks[quadrant].find(t => t.id === taskId);
+  const selector = document.createElement('div');
+  selector.className = 'task-tag-selector';
+
+  state.tags.forEach(tag => {
+    const b = document.createElement('span');
+    b.className = 'tag-badge' + (task.tagId === tag.id ? ' selected' : '');
+    b.style.background = tag.color + '33';
+    b.style.color = tag.color;
+    b.style.borderColor = task.tagId === tag.id ? tag.color : 'transparent';
+    b.textContent = tag.name;
+    b.onclick = () => { setTaskTag(taskId, quadrant, tag.id); selector.remove(); };
+    selector.appendChild(b);
+  });
+
+  // "No tag" option
+  const none = document.createElement('span');
+  none.className = 'tag-badge';
+  none.style.background = 'rgba(255,255,255,0.1)';
+  none.style.color = '#aaa';
+  none.textContent = '✕ Aucun';
+  none.onclick = () => { setTaskTag(taskId, quadrant, null); selector.remove(); };
+  selector.appendChild(none);
+
+  btn.closest('.task-item').style.position = 'relative';
+  btn.closest('.task-item').appendChild(selector);
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!selector.contains(e.target)) { selector.remove(); document.removeEventListener('click', handler); }
+    });
+  }, 100);
+}
+
+function renderCompleted() {
+  const list = document.getElementById('completed-list');
+  document.getElementById('total-score').textContent = state.totalScore;
+
+  if (state.completedTasks.length === 0) {
+    list.innerHTML = '<div class="empty-state">Aucune tâche réussie pour l\'instant… Cochez des tâches et collectez votre score ! 🎯</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  [...state.completedTasks].reverse().forEach((task, ri) => {
+    const i = state.completedTasks.length - 1 - ri;
+    const div = document.createElement('div');
+    div.className = 'completed-task-item';
+    const quadLabels = { plan:'Planifier', do:'Faire', elim:'Éliminer', deleg:'Déléguer', backlog:'Backlog' };
+    div.innerHTML = `
+      <span style="font-size:1rem;">✅</span>
+      <div style="flex:1">
+        <div class="task-text-done">${escHtml(task.text)}</div>
+        <div class="task-origin">📍 ${quadLabels[task.quadrant] || task.quadrant} · ${new Date(task.collectedAt).toLocaleString('fr-FR')}</div>
+      </div>
+      <span class="task-score-done">+${task.collectedPoints} pts</span>
+      <button class="restore-btn" title="Restaurer" onclick="restoreTask(${i})">↩️</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function restoreTask(i) {
+  const task = state.completedTasks[i];
+  state.totalScore -= (task.collectedPoints || 0);
+  state.completedTasks.splice(i, 1);
+  task.done = false;
+  delete task.collectedPoints;
+  delete task.collectedAt;
+  state.tasks[task.quadrant].push(task);
+  renderQuadrant(task.quadrant);
+  renderCompleted();
+  updateBacklogCount();
+  triggerSync();
+  showToast('↩️ Tâche restaurée');
+}
+
+function updateBacklogCount() {
+  document.getElementById('backlog-count').textContent = state.tasks.backlog.length + ' tâche' + (state.tasks.backlog.length > 1 ? 's' : '');
+}
+
+function renderAll() {
+  ['plan','do','elim','deleg','backlog'].forEach(q => renderQuadrant(q));
+  renderObjectives();
+  renderTags();
+  renderCompleted();
+  updateBacklogCount();
+}
+
+/* ================================================================
+   EXPORT / IMPORT
+================================================================ */
+function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'eisenhower-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇️ Sauvegarde exportée');
+}
+
+function openImportModal()  { document.getElementById('import-modal').classList.add('active'); }
+function closeImportModal() { document.getElementById('import-modal').classList.remove('active'); }
+
+function importData() {
+  const raw = document.getElementById('import-textarea').value.trim();
+  const errEl = document.getElementById('import-error');
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.tasks) throw new Error('Format incorrect');
+    Object.assign(state, parsed);
+    renderAll();
+    closeImportModal();
+    triggerSync();
+    showToast('✅ Données importées');
+    errEl.style.display = 'none';
+  } catch(e) {
+    errEl.style.display = 'block';
+  }
+}
+
+/* ================================================================
+   RESET
+================================================================ */
+function resetAll() {
+  if (!confirm('Réinitialiser toutes les données ? Cette action est irréversible.')) return;
   state = {
-    tasks:      { planifier:[], faire:[], eliminer:[], deleguer:[], backlog:[] },
-    objectives: [], tags: [],
-    scores:     { planifier:0, faire:0, eliminer:0, deleguer:0, backlog:0 },
-    totalScore: 0, completed: []
+    tasks: { plan:[], do:[], elim:[], deleg:[], backlog:[] },
+    objectives: [],
+    tags: [],
+    scores: { plan:0, do:0, elim:0, deleg:0, backlog:0 },
+    selectedPoints: { plan:5, do:5, elim:5, deleg:5, backlog:5 },
+    completedTasks: [],
+    totalScore: 0,
+    filter: 'all',
+    urgencyFilter: null
   };
   renderAll();
-  autoSave();
-});
+  triggerSync();
+  showToast('🔄 Données réinitialisées');
+}
 
-document.getElementById('btn-reset-score').addEventListener('click', () => {
-  if (!confirm('Réinitialiser le score ?')) return;
-  state.scores = { planifier:0, faire:0, eliminer:0, deleguer:0, backlog:0 };
-  state.totalScore = 0;
-  renderScores();
-  autoSave();
-});
+/* ================================================================
+   INIT
+================================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  // Restore GitHub config inputs
+  document.getElementById('gh-token').value   = ghToken;
+  document.getElementById('gh-gist-id').value = ghGistId;
 
-/* Objectifs */
-document.getElementById('btn-add-obj').addEventListener('click', () => {
-  const inp = document.getElementById('obj-input');
-  addObjective(inp.value);
-  inp.value = '';
-});
-document.getElementById('obj-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { document.getElementById('btn-add-obj').click(); }
-});
-document.getElementById('objectives-list').addEventListener('click', e => {
-  if (e.target.classList.contains('del-obj')) deleteObjective(+e.target.dataset.i);
-});
-
-/* Tags — clic sur badge */
-document.getElementById('tags-section').addEventListener('click', e => {
-  const badge = e.target.closest('.tag-badge');
-  if (!badge) return;
-  activeTag = badge.dataset.tag;
-  renderTags();
-  QUADRANTS.forEach(renderTasks);
-});
-
-/* Filtres */
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeFilter = btn.dataset.filter;
-    QUADRANTS.forEach(renderTasks);
-  });
-});
-
-/* Score boutons */
-document.addEventListener('click', e => {
-  const btn = e.target.closest('.score-btn');
-  if (!btn) return;
-  addScore(btn.dataset.q, +btn.dataset.pts);
-});
-
-/* Formulaires ajout tâche */
-document.querySelectorAll('.add-task-form').forEach(form => {
-  const quadrant = form.dataset.quadrant;
-  const input = form.querySelector('input[type="text"]');
-  const select = form.querySelector('select');
-  const btn = form.querySelector('button');
-
-  btn.addEventListener('click', () => {
-    addTask(quadrant, input.value, select.value);
-    input.value = '';
-    select.value = '';
-  });
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') btn.click();
-  });
-});
-
-/* Actions sur tâches (délégation) */
-document.addEventListener('change', e => {
-  if (e.target.type === 'checkbox' && e.target.dataset.id) {
-    toggleTask(e.target.dataset.id, e.target.dataset.q);
+  if (ghToken) {
+    setSyncStatus('busy', '⏳ Chargement…');
+  } else {
+    setSyncStatus('error', '⚙️ Configurez votre token GitHub');
   }
-});
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('btn-del-task')) {
-    deleteTask(e.target.dataset.id, e.target.dataset.q);
-  }
-  if (e.target.classList.contains('btn-edit-task')) {
-    editTask(e.target.dataset.id, e.target.dataset.q);
-  }
-});
 
-/* Ajout tag via double-clic sur section tags */
-document.getElementById('tags-section').addEventListener('dblclick', e => {
-  if (e.target.id === 'tags-section' || e.target.tagName === 'STRONG') {
-    const name = prompt('Nom du nouveau tag :');
-    if (name) addTag(name);
-  }
-});
-
-// ============================================================
-// 🚀 INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
+  loadLocal();
   renderAll();
-  loadFromGist(); // Chargement automatique au démarrage
 
-  // Sauvegarde de sécurité toutes les 2 minutes
-  setInterval(saveToGist, 2 * 60 * 1000);
+  // Restore gist link if we have an ID
+  if (ghGistId) {
+    const link = document.getElementById('gist-link');
+    link.href = `https://gist.github.com/${ghGistId}`;
+    link.style.display = 'inline';
+  }
+
+  // Initial sync if configured
+  if (ghToken) syncToGist();
+
+  // Keyboard shortcut: Enter on objective input
+  document.getElementById('new-obj-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addObjective();
+  });
+  document.getElementById('new-tag-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTag();
+  });
 });
 </script>
 </body>
