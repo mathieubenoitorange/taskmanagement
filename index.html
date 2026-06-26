@@ -686,7 +686,7 @@
 /* ================================================================
    ⚙️ CONFIGURATION – Modifiez uniquement ces 2 paramètres
 ================================================================ */
-const GITHUB_TOKEN   = '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';   // Votre Personal Access Token GitHub (scope: gist)
+const GITHUB_TOKEN   = ' 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';   // Votre Personal Access Token GitHub (scope: gist)
 const GITHUB_GIST_ID = '';                        // Laisser vide pour créer automatiquement au 1er lancement
 
 /* ================================================================
@@ -724,7 +724,7 @@ function setSyncStatus(type, msg) {
    GITHUB GIST SYNC
 ================================================================ */
 async function syncToGist() {
-  if (!GITHUB_TOKEN || GITHUB_TOKEN === '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') {
+  if (!GITHUB_TOKEN || GITHUB_TOKEN === 'ghp_VOTRE_TOKEN_ICI') {
     setSyncStatus('error', '⚙️ Token non configuré');
     return;
   }
@@ -794,7 +794,7 @@ async function syncToGist() {
 /** Déclenche une sync avec debounce (évite les appels trop fréquents) */
 function triggerSync() {
   saveLocal();
-  if (!GITHUB_TOKEN || GITHUB_TOKEN === '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') return;
+  if (!GITHUB_TOKEN || GITHUB_TOKEN === 'ghp_VOTRE_TOKEN_ICI') return;
   clearTimeout(syncDebounceTimer);
   syncDebounceTimer = setTimeout(() => syncToGist(), 800);
 }
@@ -1343,7 +1343,7 @@ window.addEventListener('DOMContentLoaded', () => {
   renderAll();
 
   // Sync initiale
-  if (GITHUB_TOKEN && GITHUB_TOKEN !== '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') {
+  if (GITHUB_TOKEN && GITHUB_TOKEN !== 'ghp_VOTRE_TOKEN_ICI') {
     syncToGist();
   } else {
     setSyncStatus('error', '⚙️ Token non configuré');
